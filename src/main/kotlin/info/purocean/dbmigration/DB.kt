@@ -3,6 +3,7 @@ package info.purocean.dbmigration
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.Statement
+import java.util.*
 
 class DB(dbUrl: String, dbUsername: String, dbPassword: String) {
     private var conn: Connection
@@ -38,7 +39,7 @@ class DB(dbUrl: String, dbUsername: String, dbPassword: String) {
             val migration = Migration(
                     result.getString("name"),
                     result.getString("uri"),
-                    result.getDate("applied_at")
+                    Date(result.getTimestamp("applied_at").time)
             )
             data.add(migration)
         }

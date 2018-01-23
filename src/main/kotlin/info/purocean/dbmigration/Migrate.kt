@@ -7,7 +7,7 @@ import org.reflections.util.ConfigurationBuilder
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.*
+import java.text.SimpleDateFormat
 import java.util.regex.Pattern
 import kotlin.collections.ArrayList
 
@@ -22,7 +22,11 @@ class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var
 
         println("Migrate ----------- end ------------")
 
-        this.getHistory().forEach { println("${it.name}\t${it.appliedAt}") }
+        this.getHistory().forEach {
+            val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+
+            println("${simpleDateFormat.format(it.appliedAt)}\t${it.name}")
+        }
 
         this.db.close()
     }
