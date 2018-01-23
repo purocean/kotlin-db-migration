@@ -9,6 +9,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 import java.util.regex.Pattern
+import kotlin.collections.ArrayList
 
 class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var migrationPackage: String = "db.migrations") {
     private var db: DB = DB(dbUrl, dbUsername, dbPassword)
@@ -41,23 +42,31 @@ class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var
     }
 
     private fun getNew (): List<Migration> {
-        val fileList = ArrayList<String>()
+        val history = this.getHistory()
+
+        val migrations = ArrayList<Migration>()
 
         ClasspathHelper.forPackage(this.migrationPackage).forEach { url ->
             val paths = Reflections(ConfigurationBuilder()
                     .setScanners(ResourcesScanner())
                     .setUrls(url))
                     .getResources(Pattern.compile(".*\\.sql"))
-                    .map { url.toString() + it }
+                    .map { Migration(it.substringAfterLast('/'), url.toString() + it, null) }
+                    .filter { migration ->
+                        history.find { it.name == migration.name } === null
+                    }
 
-            fileList.addAll(paths)
+
+            migrations.addAll(paths)
         }
 
-        fileList.sort()
-
-        return fileList.map {
-            Migration(it.substringAfterLast('/'), it, null)
+        migrations.sortBy {
+            it.name
         }
+
+        migrations.forEach { println(it.uri) }
+
+        return migrations
     }
 
     init {
