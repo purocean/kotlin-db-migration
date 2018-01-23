@@ -1,12 +1,16 @@
 package info.purocean.dbmigration
 
-import java.io.File
+import org.reflections.Reflections
+import org.reflections.scanners.ResourcesScanner
+import org.reflections.util.ClasspathHelper
+import org.reflections.util.ConfigurationBuilder
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
+import java.util.regex.Pattern
 
-class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var migrationPath: String = "/db/migrations") {
+class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var migrationPackage: String = "db.migrations") {
     private var db: DB = DB(dbUrl, dbUsername, dbPassword)
 
     fun run () {
@@ -37,23 +41,22 @@ class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var
     }
 
     private fun getNew (): List<Migration> {
-        val path = Migration::class.java.getResource(this.migrationPath)
-        if (path === null) {
-            throw Exception("迁移目录未找到 [${this.migrationPath}]")
+        val fileList = ArrayList<String>()
+
+        ClasspathHelper.forPackage(this.migrationPackage).forEach { url ->
+            val paths = Reflections(ConfigurationBuilder()
+                    .setScanners(ResourcesScanner())
+                    .setUrls(url))
+                    .getResources(Pattern.compile(".*\\.sql"))
+                    .map { url.toString() + it }
+
+            fileList.addAll(paths)
         }
 
-        val dir = File(path.toURI())
-
-        val fileList = dir.listFiles { file ->
-            this.getHistory().find { migration ->
-                migration.name == file.name
-            } === null && file.extension == "sql"
-        }
-
-        Arrays.sort(fileList)
+        fileList.sort()
 
         return fileList.map {
-            Migration(it.name, it.toURI().toString(), null)
+            Migration(it.substringAfterLast('/'), it, null)
         }
     }
 
