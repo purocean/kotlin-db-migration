@@ -64,12 +64,14 @@ class DB(dbUrl: String, dbUsername: String, dbPassword: String) {
             xStmt.setString(2, migration.uri)
 
             xStmt.execute()
+            xStmt.close()
 
             this.conn.commit()
         } catch (e: Exception) {
             println("Migrate ----------- 执行迁移错误 [${migration.name}] ------------")
             this.conn.rollback()
             e.printStackTrace()
+            throw e
         } finally {
             stmt.close()
             this.conn.autoCommit = true
