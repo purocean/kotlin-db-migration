@@ -1,4 +1,4 @@
-package yang.dbmigration
+package info.purocean.dbmigration
 
 import java.sql.Connection
 import java.sql.DriverManager

@@ -1,8 +1,7 @@
-package yang.dbmigration.test
+package info.purocean.dbmigration.test
 
 import org.junit.Test
-import yang.dbmigration.Migrate
-import yang.dbmigration.Migration
+import info.purocean.dbmigration.Migrate
 
 class MigrationTest {
     @Test

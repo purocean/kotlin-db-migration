@@ -1,4 +1,4 @@
-package yang.dbmigration
+package info.purocean.dbmigration
 
 import java.io.File
 import java.net.URI
