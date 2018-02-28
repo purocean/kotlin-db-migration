@@ -58,14 +58,7 @@ class DB(dbUrl: String, dbUsername: String, dbPassword: String) {
                 throw Exception("执行迁移错误")
             }
 
-            val xStmt = this.conn.prepareStatement("insert into `$migrationTable`" +
-                    "set name = ?, uri = ?")
-
-            xStmt.setString(1, migration.name)
-            xStmt.setString(2, migration.uri)
-
-            xStmt.execute()
-            xStmt.close()
+            this.writeRecord(migration)
 
             this.conn.commit()
         } catch (e: Exception) {
@@ -77,6 +70,17 @@ class DB(dbUrl: String, dbUsername: String, dbPassword: String) {
             stmt.close()
             this.conn.autoCommit = true
         }
+    }
+
+    fun writeRecord (migration: Migration) {
+        val stmt = this.conn.prepareStatement("insert into `$migrationTable`" +
+                "set name = ?, uri = ?")
+
+        stmt.setString(1, migration.name)
+        stmt.setString(2, migration.uri)
+
+        stmt.execute()
+        stmt.close()
     }
 
     fun close () {
