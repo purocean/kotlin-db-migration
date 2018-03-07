@@ -1,6 +1,5 @@
 package info.purocean.dbmigration
 
-import org.reflections.Reflections
 import org.reflections.scanners.ResourcesScanner
 import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
@@ -117,7 +116,6 @@ class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var
                     .getSubTypesOf(CodeMigration::class.java)
                     .map { Migration(it.name, url.toString() + ':' + it.name, null, Migration.TYPE.CODE) }
                     .filter { migration ->
-                        println(migration.name)
                         history.find { it.name == migration.name } === null
                     }
 
