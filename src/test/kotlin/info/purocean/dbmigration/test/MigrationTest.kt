@@ -8,6 +8,7 @@ class MigrationTest {
     fun runTest () {
         var obj = this.getObj()
         obj.run()
+        this.getObj().runCode("jkj")
     }
 
     private fun getObj () : Migrate {

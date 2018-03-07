@@ -5,16 +5,14 @@ import org.reflections.scanners.ResourcesScanner
 import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
+import java.io.IOException
 import java.net.URI
+import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.text.SimpleDateFormat
-import java.util.regex.Pattern
-import java.nio.file.FileSystems
-import java.io.IOException
-import java.nio.file.FileSystem
 import java.util.*
-import java.util.HashMap
+import java.util.regex.Pattern
 
 class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var migrationPackage: String = "db.migrations") {
     private var db: DB = DB(dbUrl, dbUsername, dbPassword)
@@ -98,7 +96,7 @@ class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var
 
         // 查找 sql 迁移
         ClasspathHelper.forPackage(this.migrationPackage).forEach { url ->
-            val paths = Reflections(ConfigurationBuilder()
+            val paths = MyReflections(ConfigurationBuilder().setExpandSuperTypes(false)
                     .setScanners(ResourcesScanner())
                     .setUrls(url))
                     .getResources(Pattern.compile(".*\\.sql"))
@@ -113,12 +111,13 @@ class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var
 
         // 查找代码迁移
         ClasspathHelper.forPackage(this.migrationPackage).forEach { url ->
-            val paths = Reflections(ConfigurationBuilder()
+            val paths = MyReflections(ConfigurationBuilder()
                     .setScanners(SubTypesScanner())
                     .setUrls(url))
                     .getSubTypesOf(CodeMigration::class.java)
                     .map { Migration(it.name, url.toString() + ':' + it.name, null, Migration.TYPE.CODE) }
                     .filter { migration ->
+                        println(migration.name)
                         history.find { it.name == migration.name } === null
                     }
 
