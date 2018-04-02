@@ -4,11 +4,6 @@ import org.reflections.scanners.ResourcesScanner
 import org.reflections.scanners.SubTypesScanner
 import org.reflections.util.ClasspathHelper
 import org.reflections.util.ConfigurationBuilder
-import java.io.IOException
-import java.net.URI
-import java.nio.file.FileSystems
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
@@ -50,21 +45,12 @@ class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var
         this.db.close()
     }
 
-    @Throws(IOException::class)
-    private fun initFileSystem(uri: URI) {
-        try {
-            FileSystems.newFileSystem(uri, HashMap<String, String>())
-        } catch (e: Exception) {
-            FileSystems.getDefault()
-        }
-    }
-
     private fun runMigration(migration: Migration) {
         println("Migrate ----------- ${migration.name} ------------")
 
-        val uri = URI(migration.uri)
-        this.initFileSystem(uri)
-        val content = String(Files.readAllBytes(Paths.get(uri)))
+        val inputStream = javaClass.classLoader.getResourceAsStream(migration.uri.substringAfterLast(":"))
+
+        val content = String(inputStream.readBytes())
 
         this.db.runMigration(migration, { stmt ->
             stmt.execute(content)
@@ -99,7 +85,7 @@ class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var
                     .setScanners(ResourcesScanner())
                     .setUrls(url))
                     .getResources(Pattern.compile(".*\\.sql"))
-                    .map { Migration(it.substringAfterLast('/'), url.toString() + it, null) }
+                    .map { Migration(it.substringAfterLast('/'), url.toString() + ":" + it, null) }
                     .filter { migration ->
                         history.find { it.name == migration.name } === null
                     }
