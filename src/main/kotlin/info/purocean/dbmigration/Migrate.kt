@@ -11,13 +11,13 @@ import java.util.regex.Pattern
 class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var migrationPackage: String = "db.migrations") {
     private var db: DB = DB(dbUrl, dbUsername, dbPassword)
 
-    fun run () {
+    fun run (dryRun: Boolean = false) {
         val newList = this.getNew()
-        println("Migrate ----------- start ${newList.size} ------------")
+        println("Migrate ${if (dryRun) "[dry run] " else ""}----------- start ${newList.size} ------------")
 
-        newList.forEach { this.runMigration(it) }
+        newList.forEach { this.runMigration(it, dryRun) }
 
-        println("Migrate ----------- end ------------")
+        println("Migrate ${if (dryRun) "[dry run] " else ""}----------- end ------------")
 
         this.getHistory().forEach {
             val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -28,13 +28,13 @@ class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var
         this.db.close()
     }
 
-    fun runCode (context: Any? = null) {
+    fun runCode (context: Any? = null, dryRun: Boolean = false) {
         val newList = this.getNew(Migration.TYPE.CODE)
-        println("Migrate Code ----------- start ${newList.size} ------------")
+        println("Migrate Code ${if (dryRun) "[dry run] " else ""}----------- start ${newList.size} ------------")
 
-        newList.forEach { this.runCodeMigration(it, context) }
+        newList.forEach { this.runCodeMigration(it, context, dryRun) }
 
-        println("Migrate Code ----------- end ------------")
+        println("Migrate Code ${if (dryRun) "[dry run] " else ""}----------- end ------------")
 
         this.getHistory().forEach {
             val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -45,27 +45,31 @@ class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var
         this.db.close()
     }
 
-    private fun runMigration(migration: Migration) {
-        println("Migrate ----------- ${migration.name} ------------")
+    private fun runMigration(migration: Migration, dryRun: Boolean) {
+        println("Migrate ${if (dryRun) "[dry run] " else ""}----------- ${migration.name} ------------")
 
         val inputStream = javaClass.classLoader.getResourceAsStream(migration.uri.substringAfterLast(":"))
 
         val content = String(inputStream.readBytes())
 
-        this.db.runMigration(migration, { stmt ->
-            stmt.execute(content)
+        this.db.runMigration(migration) { stmt ->
+            if (!dryRun) {
+                stmt.execute(content)
+            }
             true
-        })
+        }
     }
 
-    private fun runCodeMigration(migration: Migration, context: Any?) {
-        println("Migrate Code ----------- ${migration.name} ------------")
+    private fun runCodeMigration(migration: Migration, context: Any?, dryRun: Boolean) {
+        println("Migrate Code ${if (dryRun) "[dry run] " else ""}----------- ${migration.name} ------------")
 
-        val cls = Class.forName(migration.name)
+        if (!dryRun) {
+            val cls = Class.forName(migration.name)
 
-        val obj = cls.newInstance()
+            val obj = cls.newInstance()
 
-        cls.getMethod("run", Object::class.java).invoke(obj, context)
+            cls.getMethod("run", Object::class.java).invoke(obj, context)
+        }
 
         this.db.writeRecord(migration)
     }
