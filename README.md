@@ -1,10 +1,12 @@
 # kotlin-db-migration
 
+## Trait
 1. simple & light
 1. name based version
 1. support dry run
 1. support code migration and sql migration
 
+## With Spring
 ```kotlin
 @Component
 class Migration: InitializingBean, ApplicationListener<ApplicationReadyEvent>{
@@ -44,8 +46,9 @@ class M2018_03_15_105104_test_migration: CodeMigration<ApplicationContext> {
 }
 ```
 
+## Gradle task help create migration
 ```gradle
-    // ./gradlew :common:createMigration -Ptp=code -Pmn=create_role_table
+    // ./gradlew createMigration -Ptp=code -Pmn=create_role_table
     createMigration.doLast {
         if (project.hasProperty('mn')) {
             def content = "\n"
