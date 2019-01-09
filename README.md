@@ -1,5 +1,10 @@
 # kotlin-db-migration
 
+```groovy
+// https://search.maven.org/artifact/info.purocean/kotlin-db-migration/1.0/jar
+compile('info.purocean:kotlin-db-migration:1.0')
+```
+
 ## Trait
 1. simple & light
 1. name based version
