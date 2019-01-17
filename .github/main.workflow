@@ -1,10 +1,12 @@
-workflow "New workflow" {
+workflow "publish" {
   on = "push"
   resolves = ["maven-publish"]
 }
 
 action "maven-publish" {
-  uses = "./gradlew"
-  runs = "./gradlew"
-  args = "build"
+  uses = "./"
+  secrets = [
+    "GNUPG_KEY",
+    "GRADLE_CONFIG",
+  ]
 }

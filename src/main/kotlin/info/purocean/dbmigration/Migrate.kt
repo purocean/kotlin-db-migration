@@ -11,6 +11,10 @@ import java.util.regex.Pattern
 class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var migrationPackage: String = "db.migrations") {
     private var db: DB = DB(dbUrl, dbUsername, dbPassword)
 
+    fun getDb (): DB {
+        return this.db
+    }
+
     fun run (dryRun: Boolean = false) {
         val newList = this.getNew()
         println("Migrate ${if (dryRun) "[dry run] " else ""}----------- start ${newList.size} ------------")
@@ -68,7 +72,7 @@ class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var
 
             val obj = cls.newInstance()
 
-            cls.getMethod("run", Object::class.java).invoke(obj, context, this.db.getConnection())
+            cls.getMethod("run", Object::class.java).invoke(obj, context, this.db)
         }
 
         this.db.writeRecord(migration)

@@ -18,6 +18,26 @@ class DB(dbUrl: String, dbUsername: String, dbPassword: String) {
         this.conn = DriverManager.getConnection(url, dbUsername, dbPassword)
     }
 
+    fun exec (sql: String) {
+        this.conn.autoCommit = false
+        val stmt = this.conn.createStatement()
+
+        try {
+            println("Migrate ----------- 执行SQL ------------")
+            println(sql)
+
+            stmt.execute(sql)
+            this.conn.commit()
+        } catch (e: Exception) {
+            this.conn.rollback()
+            e.printStackTrace()
+            throw e
+        } finally {
+            stmt.close()
+            this.conn.autoCommit = true
+        }
+    }
+
     fun createScheme () {
         val stmt = this.getStmt()
 
