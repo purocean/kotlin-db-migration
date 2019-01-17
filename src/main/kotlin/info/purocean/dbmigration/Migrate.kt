@@ -68,7 +68,7 @@ class Migrate(dbUrl: String, dbUsername: String, dbPassword: String, private var
 
             val obj = cls.newInstance()
 
-            cls.getMethod("run", Object::class.java).invoke(obj, context)
+            cls.getMethod("run", Object::class.java).invoke(obj, context, this.db.getConnection())
         }
 
         this.db.writeRecord(migration)

@@ -88,6 +88,10 @@ class DB(dbUrl: String, dbUsername: String, dbPassword: String) {
         this.conn.close()
     }
 
+    fun getConnection (): Connection {
+        return this.conn
+    }
+
     private fun getStmt (): Statement {
         return this.conn.createStatement()
     }
